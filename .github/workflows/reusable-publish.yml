@@ -1,0 +1,41 @@
+name: publish
+
+# Reusable: git tag vX.Y.Z && git push --tags -> tests -> tag == version check -> build -> PyPI.
+# Trusted publishing: the PyPI project lists the CALLING repo, workflow publish.yml, environment pypi.
+on:
+  workflow_call:
+    inputs:
+      package-dir:     { type: string, default: "client" }
+      python-version:  { type: string, default: "3.12" }
+      install:         { type: string, default: "pytest boto3" }
+      compose-service: { type: string, default: "" }
+      test-env:        { type: string, default: "" }
+
+jobs:
+  test:
+    uses: cloudformer/redefine-aws-serverless-workflow/.github/workflows/reusable-test.yml@main
+    with:
+      python-version: ${{ inputs.python-version }}
+      install: ${{ inputs.install }}
+      compose-service: ${{ inputs.compose-service }}
+      test-env: ${{ inputs.test-env }}
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+      - name: the tag must equal the package version
+        run: |
+          v=$(grep -m1 '^version' ${{ inputs.package-dir }}/pyproject.toml | cut -d'"' -f2)
+          [ "v$v" = "${GITHUB_REF_NAME}" ] || { echo "tag ${GITHUB_REF_NAME} != version $v"; exit 1; }
+      - run: pip install build && python -m build ${{ inputs.package-dir }}
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ inputs.package-dir }}/dist

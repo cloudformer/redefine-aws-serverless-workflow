@@ -1,0 +1,34 @@
+name: tests
+
+# Reusable: every project's test.yml (and this repository's own) calls it with `uses:`. Only workflow_call,
+# so a copy of this file in a project never runs by itself.
+on:
+  workflow_call:
+    inputs:
+      python-version:  { type: string, default: "3.12" }
+      install:         { type: string, default: "pytest boto3" }     # pip install <these>; add the real client library
+      compose-file:    { type: string, default: "tests/compat/docker-compose.yml" }
+      compose-service: { type: string, default: "" }                 # "" = no reference service
+      test-env:        { type: string, default: "" }                 # e.g. MYSQL_DSN=mysql://root:test@127.0.0.1:3306/compat
+      test-command:    { type: string, default: "python -m pytest tests -q" }
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version || '3.12' }}
+      - run: pip install ${{ inputs.install || 'pytest boto3' }}
+      - if: inputs.compose-service != ''
+        name: start the reference service
+        run: docker compose -f ${{ inputs.compose-file }} up -d --wait ${{ inputs.compose-service }}
+      - name: regression + compatibility suite (writes tests/compat/REPORT.md)
+        run: env ${{ inputs.test-env }} ${{ inputs.test-command || 'python -m pytest tests -q' }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-report
+          path: tests/compat/REPORT.md
+          if-no-files-found: ignore
