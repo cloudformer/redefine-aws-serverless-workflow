@@ -1,9 +1,12 @@
 name: publish
 
 # Reusable: git tag vX.Y.Z && git push --tags -> tests -> tag == version check -> build -> PyPI.
-# Trusted publishing: the PyPI project lists the CALLING repo, workflow publish.yml, environment pypi.
+# Auth: the caller's PYPI_TOKEN secret (set by the project-creation block, `secrets: inherit` in the caller);
+# without it, PyPI trusted publishing (project -> Publishing -> this repo, publish.yml, environment pypi).
 on:
   workflow_call:
+    secrets:
+      PYPI_TOKEN: { required: false }
     inputs:
       package-dir:     { type: string, default: "client" }
       python-version:  { type: string, default: "3.12" }
@@ -26,6 +29,8 @@ jobs:
     environment: pypi
     permissions:
       id-token: write
+    env:
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,6 +41,14 @@ jobs:
           v=$(grep -m1 '^version' ${{ inputs.package-dir }}/pyproject.toml | cut -d'"' -f2)
           [ "v$v" = "${GITHUB_REF_NAME}" ] || { echo "tag ${GITHUB_REF_NAME} != version $v"; exit 1; }
       - run: pip install build && python -m build ${{ inputs.package-dir }}
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - if: env.PYPI_TOKEN != ''
+        name: publish with the PyPI token
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ inputs.package-dir }}/dist
+          password: ${{ secrets.PYPI_TOKEN }}
+      - if: env.PYPI_TOKEN == ''
+        name: publish with trusted publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: ${{ inputs.package-dir }}/dist
