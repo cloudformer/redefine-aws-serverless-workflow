@@ -8,7 +8,7 @@ on:
       python-version:  { type: string, default: "3.12" }
       install:         { type: string, default: "pytest boto3" }     # pip install <these>; add the real client library
       compose-file:    { type: string, default: "tests/compat/docker-compose.yml" }
-      compose-service: { type: string, default: "" }                 # "" = no reference service
+      compose-service: { type: string, default: "" }                 # "" = no reference service; several: "mysql postgres"
       test-env:        { type: string, default: "" }                 # e.g. MYSQL_DSN=mysql://root:test@127.0.0.1:3306/compat
       test-command:    { type: string, default: "python -m pytest tests -q" }
 
