@@ -11,6 +11,7 @@ on:
       compose-service: { type: string, default: "" }                 # "" = no reference service; several: "mysql postgres"
       test-env:        { type: string, default: "" }                 # e.g. MYSQL_DSN=mysql://root:test@127.0.0.1:3306/compat
       test-command:    { type: string, default: "python -m pytest tests -q" }
+      report-name:     { type: string, default: "compat-report" }   # artifact name; a matrix gives each job its own
 
 jobs:
   test:
@@ -29,6 +30,6 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: compat-report
+          name: ${{ inputs.report-name || 'compat-report' }}
           path: tests/compat/REPORT.md
           if-no-files-found: ignore
