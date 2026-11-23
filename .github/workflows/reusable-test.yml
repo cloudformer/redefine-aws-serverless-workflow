@@ -6,7 +6,7 @@ on:
   workflow_call:
     inputs:
       python-version:  { type: string, default: "3.12" }
-      install:         { type: string, default: "pytest boto3" }     # pip install <these>; add the real client library
+      install:         { type: string, default: "pytest boto3 idlefree-auth idlefree-ui" }  # pip install <these>; add the real client library
       compose-file:    { type: string, default: "tests/compat/docker-compose.yml" }
       compose-service: { type: string, default: "" }                 # "" = no reference service; several: "mysql postgres"
       test-env:        { type: string, default: "" }                 # e.g. MYSQL_DSN=mysql://root:test@127.0.0.1:3306/compat
@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python-version || '3.12' }}
-      - run: pip install ${{ inputs.install || 'pytest boto3' }}
+      - run: pip install ${{ inputs.install || 'pytest boto3 idlefree-auth idlefree-ui' }}
       - if: inputs.compose-service != ''
         name: start the reference service
         run: docker compose -f ${{ inputs.compose-file }} up -d --wait ${{ inputs.compose-service }}

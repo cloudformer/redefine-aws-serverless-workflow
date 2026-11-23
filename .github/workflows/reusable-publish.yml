@@ -1,8 +1,9 @@
 name: publish
 
 # Reusable: git tag vX.Y.Z && git push --tags -> tests -> tag == version check -> build -> PyPI.
-# Auth: the caller's PYPI_TOKEN secret (set by the project-creation block, `secrets: inherit` in the caller);
-# without it, PyPI trusted publishing (project -> Publishing -> this repo, publish.yml, environment pypi).
+# Auth: the caller's PYPI_TOKEN secret (set by the project-creation block, `secrets: inherit` in the caller).
+# It is the ONLY path: PyPI refuses trusted publishing through a reusable workflow, so a missing secret
+# fails fast below with the command that fixes it.
 on:
   workflow_call:
     secrets:
@@ -10,7 +11,7 @@ on:
     inputs:
       package-dir:     { type: string, default: "client" }
       python-version:  { type: string, default: "3.12" }
-      install:         { type: string, default: "pytest boto3" }
+      install:         { type: string, default: "pytest boto3 idlefree-auth idlefree-ui" }
       compose-service: { type: string, default: "" }
       test-env:        { type: string, default: "" }
 
@@ -48,7 +49,7 @@ jobs:
           packages-dir: ${{ inputs.package-dir }}/dist
           password: ${{ secrets.PYPI_TOKEN }}
       - if: env.PYPI_TOKEN == ''
-        name: publish with trusted publishing
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: ${{ inputs.package-dir }}/dist
+        name: missing PYPI_TOKEN
+        run: |
+          echo "::error::The repo secret PYPI_TOKEN is not set (PyPI refuses trusted publishing through a reusable workflow). Fix: gh secret set PYPI_TOKEN -R ${GITHUB_REPOSITORY} --body \"\$(awk '/password/{print \$3; exit}' ~/.pypirc)\" then re-run this workflow."
+          exit 1
