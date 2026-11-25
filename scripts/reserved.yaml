@@ -1,0 +1,23 @@
+# written by scripts/reserve_pypi.py
+registered:
+  - dynamoredis
+  - idlefree
+  - lambdachecks
+  - lambdaflow
+  - lambdavault
+  - netdevops
+  - ngfw
+  - s3rds
+  - s3shift
+  - sdwan
+  - showrun
+  - terraform-registry
+  - vaultwarden
+  - ztna
+failed:
+  - curl  # The name 'curl' isn't allowed.
+  - healthchecks  # The name 'healthchecks' is too similar to an existing project.
+  - kmsvault  # The name 'kmsvault' isn't allowed.
+  - rds  # registered by someone else (no release yet, so it does not show on PyPI)
+  - serverless  # The name 'serverless' isn't allowed.
+  - waf  # The name 'waf' isn't allowed.
