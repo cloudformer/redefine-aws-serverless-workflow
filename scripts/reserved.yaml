@@ -1,12 +1,15 @@
 # written by scripts/reserve_pypi.py
 registered:
+  - agentfree
   - dynamoredis
   - idlefree
   - lambdachecks
   - lambdaflow
+  - lambdamcp
   - lambdavault
   - netdevops
   - ngfw
+  - s3rag
   - s3rds
   - s3shift
   - sdwan
