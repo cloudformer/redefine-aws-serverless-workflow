@@ -3,6 +3,7 @@ registered:
   - agentfree
   - dynamoredis
   - idlefree
+  - idlefree-mcp
   - lambdachecks
   - lambdaflow
   - lambdamcp
@@ -21,6 +22,7 @@ failed:
   - curl  # The name 'curl' isn't allowed.
   - healthchecks  # The name 'healthchecks' is too similar to an existing project.
   - kmsvault  # The name 'kmsvault' isn't allowed.
+  - mcp-tool  # The name 'mcp-tool' is too similar to an existing project.
   - rds  # registered by someone else (no release yet, so it does not show on PyPI)
   - serverless  # The name 'serverless' isn't allowed.
   - waf  # The name 'waf' isn't allowed.
